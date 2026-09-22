@@ -92,6 +92,42 @@ module Ransack
               .to eq "((#{qcol('name')} = #{quote_value('Aaron')}) " \
                      "OR #{qcol('name')} IS NULL)"
           end
+
+          it 'is IS NULL alone when the sentinel is the only value' do
+            expect(where_clause(name_eq_any: [sentinel]))
+              .to eq "#{qcol('name')} IS NULL"
+          end
+        end
+
+        context 'on an in_any compound predicate' do
+          it 'ORs in IS NULL alongside the compound' do
+            expect(where_clause(name_in_any: ['Aaron', sentinel]))
+              .to eq "((#{qcol('name')} IN (#{quote_value('Aaron')})) " \
+                     "OR #{qcol('name')} IS NULL)"
+          end
+
+          it 'is IS NULL alone when the sentinel is the only value' do
+            expect(where_clause(name_in_any: [sentinel]))
+              .to eq "#{qcol('name')} IS NULL"
+          end
+        end
+
+        context 'the eq_all and in_all compound predicates, which are ambiguous and out of scope' do
+          # Both are conjunctive: ORing IS NULL onto them would widen rather
+          # than narrow, since a column can never equal two different real
+          # values at once. They are excluded for the same reason the
+          # negative predicates below are.
+          it 'treats the sentinel as a literal value for eq_all' do
+            expect(where_clause(name_eq_all: ['Aaron', sentinel]))
+              .to eq "(#{qcol('name')} = #{quote_value('Aaron')} " \
+                     "AND #{qcol('name')} = #{quote_value(sentinel)})"
+          end
+
+          it 'treats the sentinel as a literal value for in_all' do
+            expect(where_clause(name_in_all: ['Aaron', sentinel]))
+              .to eq "(#{qcol('name')} IN (#{quote_value('Aaron')}) " \
+                     "AND #{qcol('name')} IN (#{quote_value(sentinel)}))"
+          end
         end
 
         context 'the negative predicates, which are out of scope' do

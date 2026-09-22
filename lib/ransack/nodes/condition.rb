@@ -419,7 +419,7 @@ module Ransack
       # `validated_values` has already excluded the sentinel above, so
       # `predicate` here is built from the real values alone (or, when
       # the sentinel was the only value submitted, from an empty
-      # array). An empty IN or eq_any/eq_all is not `IS NULL` on its
+      # array). An empty IN or eq_any/in_any is not `IS NULL` on its
       # own terms (an empty `IN` is a literal false, and an empty
       # `eq_any` builds a broken Grouping), so that case is replaced
       # outright rather than OR'd.

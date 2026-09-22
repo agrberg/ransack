@@ -249,9 +249,8 @@ module Ransack
 
     # Unset by default, so no application changes behavior on upgrade. Set
     # this to a value that cannot occur in your data, and an `eq` or `in`
-    # predicate (including their `_any`/`_all` compounds) treats it as a
-    # request to also match `NULL`, instead of as a literal value to search
-    # for:
+    # predicate (including their `_any` compounds) treats it as a request to
+    # also match `NULL`, instead of as a literal value to search for:
     #
     # Ransack.configure do |config|
     #   config.null_sentinel = '__ransack_null__'

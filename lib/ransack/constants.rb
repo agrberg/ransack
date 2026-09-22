@@ -40,14 +40,18 @@ module Ransack
     A_S_I               = ['a'.freeze, 's'.freeze, 'i'.freeze].freeze
 
     # The predicates `Ransack.options[:null_sentinel]` applies to. Limited to
-    # the positive equality family (`eq`, `in`, and their `_any`/`_all`
-    # compounds) because these are the only predicates where "or is null" is
-    # unambiguous. A negative predicate treats the sentinel as a literal
-    # value instead: `not_eq` matching the sentinel would otherwise mean
-    # "is not unassigned", which reads as the opposite of what a caller
+    # the positive equality family (`eq`, `in`, and their `_any` compounds)
+    # because these are the only predicates where "or is null" is
+    # unambiguous. The `_all` compounds are excluded because they are
+    # conjunctive: `eq_all`/`in_all` require a single column to equal every
+    # supplied value at once, so ORing in `IS NULL` would widen a query that
+    # already matches nothing (or almost nothing) rather than narrow it. A
+    # negative predicate treats the sentinel as a literal value for the same
+    # reason of unambiguity: `not_eq` matching the sentinel would otherwise
+    # mean "is not unassigned", which reads as the opposite of what a caller
     # submitting it alone almost certainly wants.
     NULL_SENTINEL_PREDICATES = [
-      'eq'.freeze, 'in'.freeze, 'eq_any'.freeze, 'eq_all'.freeze
+      'eq'.freeze, 'in'.freeze, 'eq_any'.freeze, 'in_any'.freeze
     ].freeze
 
     EQ                  = 'eq'.freeze
