@@ -253,14 +253,11 @@ module Ransack
         # The sentinel is a marker to detect, never a value to search for
         # or to cast to the column's type, so it is excluded from the
         # values #format_predicate builds the ordinary IN/EQ node from.
-        selected.reject { |v| v.value == Ransack.options[:null_sentinel] }
+        selected.reject { |v| Constants.null_sentinel_value?(v.value) }
       end
 
       def null_sentinel_requested?
-        sentinel = Ransack.options[:null_sentinel]
-        sentinel &&
-          Constants::NULL_SENTINEL_PREDICATES.include?(predicate.name) &&
-          values.any? { |v| v.value == sentinel }
+        Constants.null_sentinel_requested?(predicate.name, values)
       end
 
       def casted_values_for_attribute(attr)
@@ -416,22 +413,22 @@ module Ransack
           end
         end
 
-        if null_sentinel_requested?
-          # `validated_values` has already excluded the sentinel above, so
-          # `predicate` here is built from the real values alone (or, when
-          # the sentinel was the only value submitted, from an empty
-          # array). An empty IN or eq_any/eq_all is not `IS NULL` on its
-          # own terms (an empty `IN` is a literal false, and an empty
-          # `eq_any` builds a broken Grouping), so that case is replaced
-          # outright rather than OR'd.
-          predicate = if validated_values.empty?
-            attr_value.eq(nil)
-          else
-            predicate.or(attr_value.eq(nil))
-          end
-        end
+        null_sentinel_requested? ? apply_null_sentinel(predicate, attr_value) : predicate
+      end
 
-        predicate
+      # `validated_values` has already excluded the sentinel above, so
+      # `predicate` here is built from the real values alone (or, when
+      # the sentinel was the only value submitted, from an empty
+      # array). An empty IN or eq_any/eq_all is not `IS NULL` on its
+      # own terms (an empty `IN` is a literal false, and an empty
+      # `eq_any` builds a broken Grouping), so that case is replaced
+      # outright rather than OR'd.
+      def apply_null_sentinel(predicate, attr_value)
+        if validated_values.empty?
+          attr_value.eq(nil)
+        else
+          predicate.or(attr_value.eq(nil))
+        end
       end
 
       def in_predicate?(predicate)

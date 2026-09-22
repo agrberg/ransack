@@ -84,11 +84,7 @@ module Ransack
       # cast at all: a cast to :date or :integer turns most strings into
       # nil, which the validator then rejects, dropping the whole condition
       # when the sentinel is the only value submitted (#940).
-      sentinel = Ransack.options[:null_sentinel]
-      if sentinel && Constants::NULL_SENTINEL_PREDICATES.include?(name) &&
-         vals.any? { |v| v.value == sentinel }
-        return true
-      end
+      return true if Constants.null_sentinel_requested?(name, vals)
 
       # When blank values are meaningful, validate the value as given. Casting
       # first would turn '' into nil for an integer or boolean column and the
