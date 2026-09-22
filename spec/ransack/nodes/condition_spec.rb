@@ -144,9 +144,19 @@ module Ransack
         end
 
         context 'the form round-trip' do
-          it 'returns the sentinel alongside the real value' do
+          it 'returns the sentinel alongside the real value, on a string column' do
             search = Person.ransack(name_in: ['Aaron', sentinel])
             expect(search.name_in).to match_array(['Aaron', sentinel])
+          end
+
+          it 'returns the sentinel uncast, on an integer column' do
+            search = Person.ransack(salary_in: ['1', sentinel])
+            expect(search.salary_in).to match_array([1, sentinel])
+          end
+
+          it 'returns the sentinel uncast, on a date column' do
+            search = Person.ransack(life_start_in: ['2020-01-01', sentinel])
+            expect(search.life_start_in).to match_array([Date.new(2020, 1, 1), sentinel])
           end
         end
 

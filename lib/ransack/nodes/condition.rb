@@ -185,9 +185,22 @@ module Ransack
 
       def value
         if predicate.wants_array
-          values.map { |v| v.cast(default_type) }
+          values.map { |v| cast_unless_null_sentinel(v) }
         else
-          values.first.cast(default_type)
+          cast_unless_null_sentinel(values.first)
+        end
+      end
+
+      # Casting the sentinel here would turn it into a real value on a
+      # typed column (e.g. an integer column casts it to 0), so a form
+      # re-rendering this condition's current value would resubmit that
+      # literal instead of the sentinel.
+      def cast_unless_null_sentinel(v)
+        if Constants.null_sentinel_predicate?(predicate.name) &&
+           Constants.null_sentinel_value?(v.value)
+          v.value
+        else
+          v.cast(default_type)
         end
       end
 
