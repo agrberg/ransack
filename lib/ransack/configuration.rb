@@ -37,7 +37,8 @@ module Ransack
       fields_sort_option: nil,
       strip_whitespace: true,
       ignore_blank_values: true,
-      dialect: nil
+      dialect: nil,
+      null_sentinel: nil
     }
 
     def configure
@@ -244,6 +245,33 @@ module Ransack
     #
     def dialect=(name)
       self.options[:dialect] = name&.to_sym
+    end
+
+    # Unset by default, so no application changes behavior on upgrade. Set
+    # this to a value that cannot occur in your data, and an `eq` or `in`
+    # predicate (including their `_any`/`_all` compounds) treats it as a
+    # request to also match `NULL`, instead of as a literal value to search
+    # for:
+    #
+    # Ransack.configure do |config|
+    #   config.null_sentinel = '__ransack_null__'
+    # end
+    #
+    #   brand_in: ['AUDI']              # brand IN ('AUDI')
+    #   brand_in: ['AUDI', '__ransack_null__']
+    #                                   # (brand IN ('AUDI') OR brand IS NULL)
+    #   brand_in: ['__ransack_null__']  # brand IS NULL
+    #
+    # A single form field can express all three states this way, with no
+    # change to the field's name and no controller-side rewriting.
+    #
+    # This does not bypass `ransackable_attributes`: `NULL` on an exposed
+    # attribute is already reachable through the built-in `null` predicate.
+    #
+    # See https://github.com/activerecord-hackery/ransack/issues/940
+    #
+    def null_sentinel=(value)
+      self.options[:null_sentinel] = value
     end
 
     def arel_predicate_with_suffix(arel_predicate, suffix)

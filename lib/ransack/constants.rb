@@ -39,6 +39,17 @@ module Ransack
     ].freeze
     A_S_I               = ['a'.freeze, 's'.freeze, 'i'.freeze].freeze
 
+    # The predicates `Ransack.options[:null_sentinel]` applies to. Limited to
+    # the positive equality family (`eq`, `in`, and their `_any`/`_all`
+    # compounds) because these are the only predicates where "or is null" is
+    # unambiguous. A negative predicate treats the sentinel as a literal
+    # value instead: `not_eq` matching the sentinel would otherwise mean
+    # "is not unassigned", which reads as the opposite of what a caller
+    # submitting it alone almost certainly wants.
+    NULL_SENTINEL_PREDICATES = [
+      'eq'.freeze, 'in'.freeze, 'eq_any'.freeze, 'eq_all'.freeze
+    ].freeze
+
     EQ                  = 'eq'.freeze
     NOT_EQ              = 'not_eq'.freeze
     EQ_ANY              = 'eq_any'.freeze
